@@ -10,25 +10,30 @@ public class BasketTest {
     HashMap <String, Integer> basketMap;
     Basket basket;
 
-   @Before
-    void test(){
-       basketMap = new HashMap<>();
-       basket = new Basket(basketMap);
-       System.out.println("TEST");
+    @Before
+    void testBefor(){
+        basketMap = new HashMap<>();
+        basket = new Basket(basketMap);
+        System.out.println("Befor_test " + this.hashCode());
     }
 
-  @Test
+    @Test
     void test1(){
-       basket.add("apple",3);
-      System.out.println("TEST_1");
+        basket.add("apple",3);
+        System.out.println("Test_test1 " + this.hashCode());
     }
 
-   @After
-    void  test2(){
+
+    @Test
+    void test2(){
+        basket.cleanBasket();
+    }
+
+    @After
+    void  testAfter(){
         basket.showBasket();
-       System.out.println("TEST_2");
+        System.out.println("After_test2 " + this.hashCode());
     }
-
 
 
 
