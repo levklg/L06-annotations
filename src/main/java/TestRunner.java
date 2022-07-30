@@ -13,7 +13,7 @@ public class TestRunner {
 
     public static void run(Class clazz) {
 
-        int tests = 0;
+        int notpassed = 0;
         int passed = 0;
 
 
@@ -31,13 +31,44 @@ public class TestRunner {
                     Object object = constructor.newInstance();
                     for(Method mt : methods){
                         if(mt.isAnnotationPresent(Before.class)){
-                            TestRunner.runMeyhod(mt,object);}
+
+                        if(TestRunner.runMeyhod(mt,object)){
+                            System.out.println(mt.getName() + " - Passed");
+                            passed++;
+
+                        }
+                        else {
+                            System.out.println(mt.getName() + " -  Not Passed");
+                            notpassed++;
+                        }
+
+                        }
+
 
                     }
-                    runMeyhod(m,object );
+                    if(TestRunner.runMeyhod(m,object )){
+                        System.out.println(m.getName() + " -  Passed");
+                        passed++;
+                    }
+                    else {
+                        System.out.println(m.getName() + " - Not Passed");
+                        notpassed++;
+                    }
+
 
                     for(Method mt : methods){
-                        if(mt.isAnnotationPresent(After.class)) TestRunner.runMeyhod(mt,object);
+                        if(mt.isAnnotationPresent(After.class)){
+                            if(TestRunner.runMeyhod(mt,object)){
+                                System.out.println(mt.getName() + " - Passed");
+                                passed++;
+
+                            }
+                            else {
+                                System.out.println(mt.getName() + " - Not Passed");
+                                notpassed++;
+                            }
+
+                        }
 
                     }
 
@@ -60,19 +91,29 @@ public class TestRunner {
             e.printStackTrace();
         }
 
+        System.out.println("Number of tests - " + (passed + notpassed) + " : Passed test - " + passed
+        + ", Not Passed test - " + notpassed);
+
 
     }
 
-    private static   void runMeyhod(Method method, Object object){
+    private static   boolean runMeyhod(Method method, Object object){
+       boolean  result = false;
         if(object != null){
             method.setAccessible(true);
+            result = true;
             try {
                 method.invoke(object);
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
+              //  e.printStackTrace();
+                result = false;
+
             } catch (InvocationTargetException e) {
-                e.printStackTrace();
+             //   e.printStackTrace();
+                result = false;
+
             }
         }
+        return result;
     }
 }
