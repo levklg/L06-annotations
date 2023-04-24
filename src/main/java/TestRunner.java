@@ -8,112 +8,64 @@ import java.lang.reflect.Constructor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestRunner {
 
     public static void run(Class clazz) {
 
-        int notpassed = 0;
+        int notPassed = 0;
         int passed = 0;
 
+        List<Method> testMethods = new ArrayList<>();
+        List<Method> beforeMethods = new ArrayList<>();
+        List<Method> afterMethods = new ArrayList<>();
 
-       Method[] methods = clazz.getDeclaredMethods();
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (method.isAnnotationPresent(Test.class)) {
+                testMethods.add(method);
+            } else if (method.isAnnotationPresent(Before.class)) {
+                beforeMethods.add(method);
+            } else if (method.isAnnotationPresent(After.class)) {
+                afterMethods.add(method);
+            }
+        }
 
+        for (Method testMethod : testMethods) {
+            try {
+                Constructor<?> constructor = clazz.getDeclaredConstructor();
+                Object object = constructor.newInstance();
 
-        try {
-
-
-            for(Method m : methods){
-
-
-                if(m.isAnnotationPresent(Test.class)){
-                    Constructor<?> constructor = clazz.getDeclaredConstructor();
-                    Object object = constructor.newInstance();
-                    for(Method mt : methods){
-                        if(mt.isAnnotationPresent(Before.class)){
-
-                        if(TestRunner.runMeyhod(mt,object)){
-                            System.out.println(mt.getName() + " - Passed");
-                            passed++;
-
-                        }
-                        else {
-                            System.out.println(mt.getName() + " -  Not Passed");
-                            notpassed++;
-                        }
-
-                        }
-
-
-                    }
-                    if(TestRunner.runMeyhod(m,object )){
-                        System.out.println(m.getName() + " -  Passed");
-                        passed++;
-                    }
-                    else {
-                        System.out.println(m.getName() + " - Not Passed");
-                        notpassed++;
-                    }
-
-
-                    for(Method mt : methods){
-                        if(mt.isAnnotationPresent(After.class)){
-                            if(TestRunner.runMeyhod(mt,object)){
-                                System.out.println(mt.getName() + " - Passed");
-                                passed++;
-
-                            }
-                            else {
-                                System.out.println(mt.getName() + " - Not Passed");
-                                notpassed++;
-                            }
-
-                        }
-
-                    }
-
+                for (Method beforeMethod : beforeMethods) {
+                    runMethod(beforeMethod, object);
                 }
 
+                runTestMethod(testMethod, object);
+                passed++;
 
-
+                for (Method afterMethod : afterMethods) {
+                    runMethod(afterMethod, object);
+                }
+            } catch (Exception e) {
+                notPassed++;
             }
-
-
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-
-
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
         }
-
-        System.out.println("Number of tests - " + (passed + notpassed) + " : Passed test - " + passed
-        + ", Not Passed test - " + notpassed);
-
-
+        System.out.println("Number of tests - " + (passed + notPassed) + " : Passed test - " + passed
+                + ", Not Passed test - " + notPassed);
     }
 
-    private static   boolean runMeyhod(Method method, Object object){
-       boolean  result = false;
-        if(object != null){
+    private static void runMethod(Method method, Object object) {
+        try {
             method.setAccessible(true);
-            result = true;
-            try {
-                method.invoke(object);
-            } catch (IllegalAccessException e) {
-              //  e.printStackTrace();
-                result = false;
+            method.invoke(object);
+        } catch (IllegalAccessException | InvocationTargetException e) {
 
-            } catch (InvocationTargetException e) {
-             //   e.printStackTrace();
-                result = false;
-
-            }
         }
-        return result;
+    }
+
+    private static void runTestMethod(Method method, Object object) throws InvocationTargetException, IllegalAccessException {
+        method.setAccessible(true);
+        method.invoke(object);
     }
 }
